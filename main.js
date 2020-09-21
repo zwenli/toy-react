@@ -1,10 +1,15 @@
-function createElement(...args) {
-  console.log(args)
+import { createElement, Component, render } from './toy-react.js'
+
+class MyComponent extends Component{
+  render() {
+    return <div>
+      <h1>my component</h1>
+      {this.children}
+    </div>
+  }
 }
 
-const div = <div>
-  <div>1</div>
+render(<MyComponent class="a" id="b">
+  <div class="ccc">1</div>
   <div>2</div>
-  <div>3</div>
-  <div>4</div>
-</div>
+</MyComponent>, document.body)
