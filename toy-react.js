@@ -5,7 +5,13 @@ class ElementWrapper {
     this.root = document.createElement(tagName)
   }
   setAttribute(name, value) {
-    this.root.setAttribute(name, value)
+    // 事件处理
+    if (name.match(/^on([\s\S]+)/)) {
+      const eventName = RegExp.$1.replace(/^[\s\S]/, s => s.toLowerCase())
+      this.root.addEventListener(eventName, value)
+    } else {
+      this.root.setAttribute(name, value)
+    }
   }
   appendChild(component) {
     const range = document.createRange()
@@ -36,6 +42,7 @@ export class Component {
     this.props = Object.create(null)
     this.children = []
     this._root = null
+    this._range = null
   }
   setAttribute(name, value) {
     this.props[name] = value
@@ -46,8 +53,34 @@ export class Component {
   }
   // 改造成基于range操作dom，方便后续rerender
   [RENDER_TO_DOM](range) {
+    this._range = range
     // 递归调用Component的[RENDER_TO_DOM]，直至遇到ElementWrapper或TextWrapper
     this.render()[RENDER_TO_DOM](range)
+  }
+  rerender() {
+    // 清空range的内容，重新渲染
+    this._range.deleteContents()
+    this[RENDER_TO_DOM](this._range)
+  }
+  setState(newState) {
+    if (this.state === null || typeof this.state !== 'object') {
+      this.state = newState
+      this.rerender()
+      return
+    }
+    const merge = (oldState, newState) => {
+      for (let key in newState) {
+        if (oldState[key] === null || typeof oldState[key] !== 'object') {
+          oldState[key] = newState[key]
+        } else if (newState[key] === null || typeof newState[key] !== 'object') {
+          oldState[key] = newState[key]
+        } else {
+          merge(oldState[key], newState[key])
+        }
+      }
+    }
+    merge(this.state, newState)
+    this.rerender()
   }
   // get root() {
   //   if (!this._root) {
@@ -67,8 +100,8 @@ export function createElement(type, attributes, ...children) {
     element = new type()
   }
 
-  for (let key in attributes) {
-    element.setAttribute(key, attributes[key])
+  for (let name in attributes) {
+      element.setAttribute(name, attributes[name])
   }
   
   let insertChildren = (children) => {

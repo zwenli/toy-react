@@ -7,13 +7,21 @@ class MyComponent extends Component{
     this.state = {
       a: 1,
       b: 2,
+      c: [1,2,3],
     }
   }
   render() {
     return (
       <div class="a" id="b">
         <h1>my component</h1>
+        <button onClick={() => { this.setState({ a: this.state.a + 1}) }}>add</button>
+        <button onClick={() => { this.setState({ c: 1 }) }}>change</button>
+        <br />
         <span>{this.state.a.toString()}</span>
+        <br />
+        <span>{this.state.b.toString()}</span>
+        <br />
+        <span>{this.state.c.toString()}</span>
         {this.children}
       </div>
     )
